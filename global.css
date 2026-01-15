@@ -1,0 +1,103 @@
+@import "tailwindcss";
+@import "uniwind";
+
+@theme {
+  --color-primary: #111827;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f3f4f6;
+  --color-secondary-foreground: #111827;
+
+  --color-accent: #f9fafb;
+  --color-accent-foreground: #111827;
+
+  --color-muted: #6b7280;
+  --color-muted-foreground: #9ca3af;
+
+  --color-border: #e5e7eb;
+  --color-background: #ffffff;
+  --color-foreground: #111827;
+
+  /* Dark Theme */
+  --color-dark-background: #000000;
+  --color-dark-foreground: #ffffff;
+  --color-dark-primary: #ffffff;
+  --color-dark-secondary: #111827;
+  --color-dark-accent: #1f2937;
+  --color-dark-border: #374151;
+  --color-dark-muted: #9ca3af;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #111827;
+}
+
+/* Base styles for the app */
+.flex-1 {
+  flex: 1;
+}
+
+.bg-background {
+  background-color: var(--color-background);
+}
+
+.dark .bg-background {
+  background-color: var(--color-dark-background);
+}
+
+.text-foreground {
+  color: var(--color-foreground);
+}
+
+.dark .text-foreground {
+  color: var(--color-dark-foreground);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.dark .text-primary {
+  color: var(--color-dark-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.dark .bg-primary {
+  background-color: var(--color-dark-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+.dark .bg-secondary {
+  background-color: var(--color-dark-secondary);
+}
+
+.bg-accent {
+  background-color: var(--color-accent);
+}
+
+.dark .bg-accent {
+  background-color: var(--color-dark-accent);
+}
+
+.border-border {
+  border-color: var(--color-border);
+}
+
+.dark .border-border {
+  border-color: var(--color-dark-border);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.dark .text-muted {
+  color: var(--color-dark-muted);
+}
