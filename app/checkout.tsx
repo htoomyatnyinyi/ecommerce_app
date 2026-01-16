@@ -2,46 +2,54 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   SafeAreaView,
-  ActivityIndicator,
   Alert,
   ScrollView,
   StatusBar,
 } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useRouter } from "expo-router";
+import { useSelector } from "react-redux";
 import { useGetCartQuery } from "../services/api/cartApi";
+import { useAuthMeQuery } from "../services/api/authApi";
 import {
   useCreatePaymentIntentMutation,
   useConfirmPaymentMutation,
 } from "../services/api/checkoutApi";
-import {
-  ChevronLeft,
-  CreditCard,
-  ShieldCheck,
-  MapPin,
-} from "lucide-react-native";
+import { CreditCard, ShieldCheck, MapPin } from "lucide-react-native";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { Button } from "../components/Button";
+import { RootState } from "../services/store";
 
 export default function CheckoutScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const mode = useSelector((state: RootState) => state.theme.mode);
+  const isDark = mode === "dark";
 
+  const { data: user } = useAuthMeQuery(null);
   const { data: cartData } = useGetCartQuery(undefined);
   const [createPaymentIntent] = useCreatePaymentIntentMutation();
   const [confirmPayment] = useConfirmPaymentMutation();
 
   const total = cartData?.totalPrice || 0;
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
 
   const initializePaymentSheet = async () => {
     try {
       setLoading(true);
-      const { clientSecret, ephemeralKey, customer } =
-        await createPaymentIntent({
-          amount: Math.round(total * 100), // Stripe expects cents
-          currency: "usd",
-        }).unwrap();
+      const {
+        clientSecret,
+        ephemeralKey,
+        customer,
+        paymentIntentId: piId,
+      } = await createPaymentIntent({
+        amount: Math.round(total * 100),
+        currency: "usd",
+      }).unwrap();
+
+      setPaymentIntentId(piId);
 
       const { error } = await initPaymentSheet({
         merchantDisplayName: "Shopio Inc.",
@@ -50,7 +58,8 @@ export default function CheckoutScreen() {
         paymentIntentClientSecret: clientSecret,
         allowsDelayedPaymentMethods: true,
         defaultBillingDetails: {
-          name: "Jane Doe",
+          name: user?.username || "Guest User",
+          email: user?.email,
         },
       });
 
@@ -68,10 +77,24 @@ export default function CheckoutScreen() {
     const { error } = await presentPaymentSheet();
 
     if (error) {
-      Alert.alert(`Error code: ${error.code}`, error.message);
+      if (error.code !== "Canceled") {
+        Alert.alert(`Error code: ${error.code}`, error.message);
+      }
     } else {
-      Alert.alert("Success", "Your order is confirmed!");
-      router.replace("/(tabs)/products");
+      try {
+        setLoading(true);
+        await confirmPayment({ paymentIntentId }).unwrap();
+        Alert.alert("Success", "Your order is confirmed!");
+        router.replace("/(tabs)/products");
+      } catch (confirmErr) {
+        console.error("Order confirmation failed:", confirmErr);
+        Alert.alert(
+          "Error",
+          "Payment succeeded but order creation failed. Please contact support."
+        );
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -82,100 +105,86 @@ export default function CheckoutScreen() {
   }, [total]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <View className="px-6 py-6 flex-row items-center bg-background border-b border-border">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center bg-secondary rounded-2xl"
-        >
-          <ChevronLeft size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text className="text-xl font-black text-primary ml-4 tracking-tighter">
-          Checkout
-        </Text>
-      </View>
+      <ScreenHeader title="Checkout" />
 
       <ScrollView
         className="flex-1 px-6 pt-8"
         showsVerticalScrollIndicator={false}
       >
-        {/* Shipping Address Placeholder */}
-        <View className="bg-secondary p-6 rounded-3xl mb-6">
+        <View className="bg-secondary dark:bg-dark-secondary p-6 rounded-[32px] mb-6 border border-border dark:border-dark-border">
           <View className="flex-row items-center mb-4">
-            <MapPin size={20} color="#111827" strokeWidth={1.5} />
-            <Text className="text-sm font-black text-primary ml-3 uppercase tracking-widest text-[10px]">
+            <View className="w-8 h-8 rounded-xl bg-accent dark:bg-dark-accent items-center justify-center">
+              <MapPin
+                size={18}
+                color={isDark ? "#ffffff" : "#111827"}
+                strokeWidth={1.5}
+              />
+            </View>
+            <Text className="text-[10px] font-black text-primary dark:text-dark-primary ml-3 uppercase tracking-[2px]">
               Shipping Address
             </Text>
           </View>
-          <Text className="text-sm text-muted leading-6 pl-8">
+          <Text className="text-sm text-muted dark:text-dark-muted leading-6 pl-11 font-bold">
             123 Premium Lane, Suite 100{"\n"}
             Modern City, ST 12345
           </Text>
         </View>
 
-        {/* Secure Checkout Badge */}
-        <View className="bg-accent p-6 rounded-3xl mb-8 flex-row items-center">
-          <ShieldCheck size={24} color="#111827" strokeWidth={1.5} />
+        <View className="bg-accent dark:bg-dark-accent p-6 rounded-[32px] mb-8 flex-row items-center border border-border dark:border-dark-border">
+          <ShieldCheck
+            size={24}
+            color={isDark ? "#ffffff" : "#111827"}
+            strokeWidth={1.5}
+          />
           <View className="ml-4">
-            <Text className="text-sm font-black text-primary uppercase tracking-[2px] text-[10px]">
+            <Text className="text-[10px] font-black text-primary dark:text-dark-primary uppercase tracking-[2px]">
               Secure Checkout
             </Text>
-            <Text className="text-xs text-muted mt-1">
+            <Text className="text-xs text-muted dark:text-dark-muted mt-1 font-medium">
               PCI Compliant • SSL Encryption
             </Text>
           </View>
         </View>
 
-        <View className="border-t border-border pt-8">
+        <View className="border-t border-border dark:border-dark-border pt-8">
           <View className="flex-row justify-between mb-4">
-            <Text className="text-muted font-bold uppercase tracking-widest text-[10px]">
+            <Text className="text-muted dark:text-dark-muted font-black uppercase tracking-widest text-[10px]">
               Subtotal
             </Text>
-            <Text className="text-primary font-black tracking-tight">
+            <Text className="text-primary dark:text-dark-primary font-black tracking-tight">
               ${total}
             </Text>
           </View>
           <View className="flex-row justify-between mb-4">
-            <Text className="text-muted font-bold uppercase tracking-widest text-[10px]">
+            <Text className="text-muted dark:text-dark-muted font-black uppercase tracking-widest text-[10px]">
               Shipping
             </Text>
-            <Text className="text-primary font-black uppercase text-[10px] tracking-widest">
+            <Text className="text-primary dark:text-dark-primary font-black uppercase text-[10px] tracking-widest">
               Complimentary
             </Text>
           </View>
-          <View className="flex-row justify-between mt-6 pt-6 border-t border-dashed border-border">
-            <Text className="text-primary text-xl font-black tracking-tighter uppercase">
+          <View className="flex-row justify-between mt-6 pt-6 border-t border-dashed border-border dark:border-dark-border">
+            <Text className="text-primary dark:text-dark-primary text-xl font-black tracking-tighter uppercase">
               Total Amount
             </Text>
-            <Text className="text-primary text-3xl font-black tracking-tighter">
+            <Text className="text-primary dark:text-dark-primary text-3xl font-black tracking-tighter">
               ${total}
             </Text>
           </View>
         </View>
       </ScrollView>
 
-      <View className="p-8 bg-background border-t border-border">
-        <TouchableOpacity
-          className={`bg-primary h-16 rounded-3xl items-center justify-center shadow-xl shadow-slate-900/10 ${
-            loading ? "opacity-50" : ""
-          }`}
-          disabled={loading}
+      <View className="p-8 bg-background dark:bg-dark-background border-t border-border dark:border-dark-border">
+        <Button
+          label="Secure Payment"
+          icon={CreditCard}
           onPress={openPaymentSheet}
-          activeOpacity={0.9}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <View className="flex-row items-center">
-              <CreditCard size={20} color="white" strokeWidth={1.5} />
-              <Text className="text-primary-foreground font-black uppercase tracking-[3px] text-xs ml-3">
-                Secure Payment
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
+          loading={loading}
+          disabled={total === 0}
+        />
       </View>
     </SafeAreaView>
   );

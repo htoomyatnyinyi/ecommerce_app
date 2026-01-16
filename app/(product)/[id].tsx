@@ -21,10 +21,19 @@ import {
   Truck,
   Heart,
 } from "lucide-react-native";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../services/store";
+import { toggleWishlist } from "../../services/wishlistSlice";
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
-  const { data: product, isLoading } = useGetProductByIdQuery(id);
+  const dispatch = useDispatch();
+  const { data: productData, isLoading } = useGetProductByIdQuery(id);
+  const product = productData?.product || productData;
+  const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
+  const mode = useSelector((state: RootState) => state.theme.mode);
+  const isDark = mode === "dark";
+
   const [addToCart, { isLoading: isAdding }] = useAddToCartMutation();
   const router = useRouter();
 
@@ -36,7 +45,7 @@ export default function ProductDetail() {
 
     try {
       await addToCart({
-        productId: id,
+        productId: id as string,
         variantId: product.variants[0].id,
         quantity: 1,
       }).unwrap();
@@ -49,46 +58,52 @@ export default function ProductDetail() {
     }
   };
 
+  const isInWishlist = wishlistItems.some((item) => item.id === id);
+
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-background">
-        <ActivityIndicator size="large" color="#111827" />
+      <View className="flex-1 justify-center items-center bg-background dark:bg-dark-background">
+        <ActivityIndicator
+          size="large"
+          color={isDark ? "#ffffff" : "#111827"}
+        />
       </View>
     );
   }
 
   if (!product) {
     return (
-      <View className="flex-1 justify-center items-center bg-background">
-        <Text className="text-muted">Product not found</Text>
+      <View className="flex-1 justify-center items-center bg-background dark:bg-dark-background">
+        <Text className="text-muted dark:text-dark-muted">
+          Product not found
+        </Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Modern Header */}
-      <View className="px-6 py-4 flex-row justify-between items-center z-10 bg-background">
+      <View className="px-6 py-4 flex-row justify-between items-center z-10 bg-background dark:bg-dark-background">
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-12 h-12 bg-secondary rounded-2xl items-center justify-center"
+          className="w-12 h-12 bg-secondary dark:bg-dark-secondary rounded-2xl items-center justify-center"
         >
-          <ChevronLeft size={24} color="#111827" />
+          <ChevronLeft size={24} color={isDark ? "#ffffff" : "#111827"} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/cart")}
-          className="w-12 h-12 bg-secondary rounded-2xl items-center justify-center"
+          className="w-12 h-12 bg-secondary dark:bg-dark-secondary rounded-2xl items-center justify-center"
         >
-          <ShoppingBag size={20} color="#111827" />
+          <ShoppingBag size={20} color={isDark ? "#ffffff" : "#111827"} />
         </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Main Image - Full Width Aspect Ratio */}
         <View className="px-6 mb-8">
-          <View className="aspect-3/4 rounded-[40px] overflow-hidden bg-secondary shadow-sm">
+          <View className="aspect-3/4 rounded-[40px] overflow-hidden bg-secondary dark:bg-dark-secondary shadow-sm">
             <Image
               source={{
                 uri:
@@ -104,45 +119,56 @@ export default function ProductDetail() {
         <View className="px-8 pb-40">
           <View className="flex-row justify-between items-start mb-6">
             <View className="flex-1 mr-4">
-              <Text className="text-[10px] font-bold text-muted uppercase tracking-[3px] mb-2">
+              <Text className="text-[10px] font-black text-muted dark:text-dark-muted uppercase tracking-[3px] mb-2">
                 {product.category?.categoryName || "Premium Collection"}
               </Text>
-              <Text className="text-3xl font-black text-primary tracking-tighter leading-tight">
-                {product.name}
+              <Text className="text-3xl font-black text-primary dark:text-dark-primary tracking-tighter leading-tight">
+                {product.title}
               </Text>
             </View>
-            <Text className="text-2xl font-black text-primary tracking-tighter pt-1">
-              ${product.price}
+            <Text className="text-2xl font-black text-primary dark:text-dark-primary tracking-tighter pt-1">
+              ${product.variants?.[0]?.price}
             </Text>
           </View>
 
           {/* Features Grid */}
           <View className="flex-row gap-4 mb-8">
-            <View className="flex-1 bg-secondary p-4 rounded-3xl">
-              <ShieldCheck size={20} color="#111827" strokeWidth={1.5} />
-              <Text className="text-[10px] text-muted font-bold mt-2 uppercase tracking-widest">
+            <View className="flex-1 bg-secondary dark:bg-dark-secondary p-4 rounded-3xl">
+              <ShieldCheck
+                size={20}
+                color={isDark ? "#ffffff" : "#111827"}
+                strokeWidth={1.5}
+              />
+              <Text className="text-[10px] text-muted dark:text-dark-muted font-black mt-2 uppercase tracking-widest">
                 Warranty
               </Text>
             </View>
-            <View className="flex-1 bg-secondary p-4 rounded-3xl">
-              <Truck size={20} color="#111827" strokeWidth={1.5} />
-              <Text className="text-[10px] text-muted font-bold mt-2 uppercase tracking-widest">
+            <View className="flex-1 bg-secondary dark:bg-dark-secondary p-4 rounded-3xl">
+              <Truck
+                size={20}
+                color={isDark ? "#ffffff" : "#111827"}
+                strokeWidth={1.5}
+              />
+              <Text className="text-[10px] text-muted dark:text-dark-muted font-black mt-2 uppercase tracking-widest">
                 Express
               </Text>
             </View>
-            <View className="flex-1 bg-accent p-4 rounded-3xl">
-              <Star size={20} color="#111827" strokeWidth={1.5} />
-              <Text className="text-[10px] text-muted font-bold mt-2 uppercase tracking-widest">
+            <View className="flex-1 bg-accent dark:bg-dark-accent p-4 rounded-3xl">
+              <Star
+                size={20}
+                color={isDark ? "#ffffff" : "#111827"}
+                strokeWidth={1.5}
+              />
+              <Text className="text-[10px] text-muted dark:text-dark-muted font-black mt-2 uppercase tracking-widest">
                 4.8 Rating
               </Text>
             </View>
           </View>
 
-          {/* Description */}
-          <Text className="text-primary font-black uppercase tracking-[2px] text-[10px] mb-4">
+          <Text className="text-primary dark:text-dark-primary font-black uppercase tracking-[2px] text-[10px] mb-4">
             The Story
           </Text>
-          <Text className="text-muted leading-7 text-sm mb-10">
+          <Text className="text-muted dark:text-dark-muted leading-7 text-sm mb-10 font-medium">
             {product.description ||
               "Experience uncompromising quality with this premium product. Designed for excellence and built to last, it's the perfect addition to your high-end lifestyle."}
           </Text>
@@ -151,8 +177,28 @@ export default function ProductDetail() {
 
       {/* High-End Floating Action Bar */}
       <View className="absolute bottom-10 left-8 right-8 flex-row gap-4">
-        <TouchableOpacity className="w-16 h-16 bg-secondary rounded-3xl items-center justify-center border border-border shadow-sm">
-          <Heart size={24} color="#111827" strokeWidth={1.5} />
+        <TouchableOpacity
+          onPress={() =>
+            dispatch(
+              toggleWishlist({
+                id: product.id.toString(),
+                title: product.title,
+                price: product.variants?.[0]?.price || 0,
+                image: product.images?.[0]?.url || "",
+                category: product.category?.categoryName || "Essentials",
+              })
+            )
+          }
+          className={`w-16 h-16 ${
+            isInWishlist ? "bg-primary" : "bg-secondary dark:bg-dark-secondary"
+          } rounded-3xl items-center justify-center border border-border dark:border-dark-border shadow-sm`}
+        >
+          <Heart
+            size={24}
+            color={isInWishlist ? "#ffffff" : isDark ? "#ffffff" : "#111827"}
+            fill={isInWishlist ? "#ffffff" : "transparent"}
+            strokeWidth={1.5}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity

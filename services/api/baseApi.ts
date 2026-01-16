@@ -3,7 +3,9 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 export const BASE_URL =
-  Platform.OS === "android" ? "http://10.0.2.2:8080" : "http://192.168.1.143:8080";
+  Platform.OS === "android"
+    ? "http://10.0.2.2:8080"
+    : "http://192.168.1.143:8080";
 // const BASE_URL = "http://192.168.1.XX:8080"; // Replace with your IP
 const baseApi = createApi({
   reducerPath: "baseApi",
@@ -17,7 +19,7 @@ const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["User", "Product", "Cart", "Order"],
+  tagTypes: ["User", "Product", "Cart", "Order", "Address"],
   endpoints: () => ({}),
 });
 

@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, ShoppingBag, User, Heart } from "lucide-react-native";
+import { Home, ShoppingBag, User, Heart, Search } from "lucide-react-native";
 import { Platform } from "react-native";
 
 import { useSelector } from "react-redux";
@@ -44,11 +44,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="wishlist"
+        name="search"
         options={{
-          title: "Wishlist",
+          title: "Search",
           tabBarIcon: ({ color }) => (
-            <Heart size={22} color={color} strokeWidth={2} />
+            <Search size={22} color={color} strokeWidth={2} />
           ),
         }}
       />

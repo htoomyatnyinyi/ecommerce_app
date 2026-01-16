@@ -18,6 +18,7 @@ export const checkoutApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["Cart", "Order"],
     }),
   }),
 });

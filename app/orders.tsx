@@ -4,15 +4,16 @@ import {
   Text,
   SafeAreaView,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   StatusBar,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import { useGetOrdersQuery } from "../services/api/orderApi";
 import { RootState } from "../services/store";
-import { ChevronLeft, Package, Calendar, Tag } from "lucide-react-native";
+import { Package, Calendar, Tag } from "lucide-react-native";
+import { ScreenHeader } from "../components/ScreenHeader";
 
 export default function OrdersScreen() {
   const router = useRouter();
@@ -31,23 +32,12 @@ export default function OrdersScreen() {
     );
   }
 
-  const orderList = Array.isArray(orders) ? orders : orders?.data || [];
+  const orderList = orders?.orders || [];
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-
-      <View className="px-6 py-6 flex-row items-center border-b border-border dark:border-dark-border">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 bg-secondary dark:bg-dark-secondary rounded-2xl items-center justify-center"
-        >
-          <ChevronLeft size={24} color={isDark ? "#ffffff" : "#111827"} />
-        </TouchableOpacity>
-        <Text className="ml-4 text-xl font-black text-primary dark:text-dark-primary tracking-tighter">
-          My Orders
-        </Text>
-      </View>
+      <ScreenHeader title="My Orders" />
 
       <FlatList
         data={orderList}
@@ -55,13 +45,17 @@ export default function OrdersScreen() {
         contentContainerClassName="p-6 pt-8 pb-32"
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <View className="bg-accent dark:bg-dark-accent p-6 rounded-[32px] mb-6 shadow-sm border border-border dark:border-dark-border">
+          <TouchableOpacity
+            className="bg-accent dark:bg-dark-accent p-6 rounded-[32px] mb-6 shadow-sm border border-border dark:border-dark-border"
+            activeOpacity={0.8}
+            onPress={() => router.push(`/orders/${item.id}`)}
+          >
             <View className="flex-row justify-between items-center mb-4">
               <View className="flex-row items-center">
                 <View className="w-8 h-8 rounded-xl bg-white/50 dark:bg-black/20 items-center justify-center">
                   <Package size={16} color={isDark ? "#ffffff" : "#111827"} />
                 </View>
-                <Text className="ml-3 text-xs font-black text-primary dark:text-dark-primary uppercase tracking-widest">
+                <Text className="ml-3 text-[10px] font-black text-primary dark:text-dark-primary uppercase tracking-widest">
                   Order #{item.id.toString().slice(-4)}
                 </Text>
               </View>
@@ -72,7 +66,7 @@ export default function OrdersScreen() {
               </View>
             </View>
 
-            <View className="flex-row items-center mb-6">
+            <View className="flex-row items-center mb-4">
               <View className="flex-row items-center mr-6">
                 <Calendar size={14} color={isDark ? "#9ca3af" : "#94a3b8"} />
                 <Text className="ml-2 text-xs text-muted dark:text-dark-muted font-bold">
@@ -82,20 +76,15 @@ export default function OrdersScreen() {
               <View className="flex-row items-center">
                 <Tag size={14} color={isDark ? "#9ca3af" : "#94a3b8"} />
                 <Text className="ml-2 text-xs text-muted dark:text-dark-muted font-bold">
-                  ${item.totalAmount}
+                  ${item.totalPrice}
                 </Text>
               </View>
             </View>
 
-            <TouchableOpacity
-              className="bg-primary dark:bg-dark-primary py-4 rounded-2xl items-center"
-              activeOpacity={0.9}
-            >
-              <Text className="text-primary-foreground dark:text-dark-secondary text-[10px] font-black uppercase tracking-[2px]">
-                View Details
-              </Text>
-            </TouchableOpacity>
-          </View>
+            <Text className="text-primary dark:text-dark-primary text-[10px] font-black uppercase tracking-[2px] underline">
+              View Receipt
+            </Text>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center pt-24">
@@ -105,7 +94,10 @@ export default function OrdersScreen() {
             <Text className="text-muted dark:text-dark-muted text-base font-bold text-center">
               No orders yet
             </Text>
-            <TouchableOpacity className="mt-6" onPress={() => router.push("/")}>
+            <TouchableOpacity
+              className="mt-6"
+              onPress={() => router.replace("/")}
+            >
               <Text className="text-primary dark:text-dark-primary font-black uppercase tracking-widest text-xs underline">
                 Start Shopping
               </Text>
