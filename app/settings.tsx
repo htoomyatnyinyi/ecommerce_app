@@ -13,14 +13,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../services/store";
 import { toggleTheme } from "../services/themeSlice";
 import {
-  ChevronLeft,
   Moon,
   Sun,
   Bell,
   Lock,
   Eye,
   Globe,
+  Package,
+  Sparkles,
 } from "lucide-react-native";
+import { ScreenHeader } from "../components/ScreenHeader";
+import { resetOnboarding } from "../services/settingsSlice";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -38,7 +41,7 @@ export default function SettingsScreen() {
     onToggle,
   }: any) => (
     <TouchableOpacity
-      className="flex-row items-center justify-between p-5 bg-secondary/50 dark:bg-dark-secondary rounded-3xl mb-4"
+      className="flex-row items-center justify-between p-5 bg-secondary dark:bg-dark-secondary rounded-[28px] mb-4 border border-border/50 dark:border-dark-border/50"
       onPress={onPress}
       disabled={isToggle}
       activeOpacity={0.7}
@@ -60,12 +63,14 @@ export default function SettingsScreen() {
           value={toggleValue}
           onValueChange={onToggle}
           trackColor={{ false: "#e5e7eb", true: "#111827" }}
-          thumbColor={isToggle ? "#ffffff" : "#f4f3f4"}
+          thumbColor={isDark ? "#ffffff" : "#f4f3f4"}
         />
       ) : (
-        <Text className="text-muted dark:text-dark-muted font-medium text-sm">
-          {value}
-        </Text>
+        <View className="flex-row items-center">
+          <Text className="text-muted dark:text-dark-muted font-bold text-xs uppercase tracking-widest mr-2">
+            {value}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -74,20 +79,10 @@ export default function SettingsScreen() {
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <View className="px-6 py-6 flex-row items-center">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-10 h-10 bg-secondary dark:bg-dark-secondary rounded-2xl items-center justify-center"
-        >
-          <ChevronLeft size={24} color={isDark ? "#ffffff" : "#111827"} />
-        </TouchableOpacity>
-        <Text className="ml-4 text-xl font-black text-primary dark:text-dark-primary tracking-tighter">
-          Settings
-        </Text>
-      </View>
+      <ScreenHeader title="Settings" />
 
       <ScrollView
-        className="flex-1 px-6 pt-4"
+        className="flex-1 px-6 pt-8"
         showsVerticalScrollIndicator={false}
       >
         <Text className="text-[10px] font-black text-muted dark:text-dark-muted uppercase tracking-[3px] mb-6 ml-2">
@@ -107,6 +102,12 @@ export default function SettingsScreen() {
         </Text>
 
         <SettingItem
+          icon={Package}
+          label="My Orders"
+          onPress={() => router.push("/orders" as any)}
+        />
+
+        <SettingItem
           icon={Bell}
           label="Notifications"
           value="On"
@@ -118,6 +119,12 @@ export default function SettingsScreen() {
           label="Language"
           value="English"
           onPress={() => {}}
+        />
+
+        <SettingItem
+          icon={Sparkles}
+          label="Reset Onboarding"
+          onPress={() => dispatch(resetOnboarding())}
         />
 
         <Text className="text-[10px] font-black text-muted dark:text-dark-muted uppercase tracking-[3px] mt-8 mb-6 ml-2">
@@ -133,8 +140,8 @@ export default function SettingsScreen() {
           onPress={() => {}}
         />
 
-        <View className="py-10 items-center">
-          <Text className="text-muted dark:text-dark-muted text-xs font-bold uppercase tracking-widest">
+        <View className="py-20 items-center">
+          <Text className="text-muted dark:text-dark-muted text-[10px] font-black uppercase tracking-[4px]">
             Shopio Mobile v1.0.0
           </Text>
         </View>

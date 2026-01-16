@@ -1,10 +1,9 @@
 import * as SecureStore from "expo-secure-store";
 // import { baseApi } from "./baseApi";
-import baseApi from './baseApi';
+import baseApi from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     signIn: builder.mutation({
       query: (credentials) => ({
         url: "/api/auth/signin",
@@ -26,7 +25,7 @@ export const authApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["User"],
     }),
-    
+
     signUp: builder.mutation({
       query: (userData) => ({
         url: "/api/auth/signup",
@@ -34,21 +33,34 @@ export const authApi = baseApi.injectEndpoints({
         body: userData,
       }),
     }),
-    
+
+    verifyEmail: builder.mutation({
+      query: (body) => ({
+        url: "/api/auth/verify-email",
+        method: "POST",
+        body,
+      }),
+    }),
+
     authMe: builder.query({
       query: () => "/api/auth/auth-me",
       providesTags: ["User"],
     }),
 
-    signOut: builder.mutation({
+    signOut: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: "/api/auth/signout",
         method: "POST",
       }),
-      async onQueryStarted(arg, { queryFulfilled }) {
-        await queryFulfilled;
-        await SecureStore.deleteItemAsync("accessToken");
-        await SecureStore.deleteItemAsync("refreshToken");
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await SecureStore.deleteItemAsync("accessToken");
+          await SecureStore.deleteItemAsync("refreshToken");
+          dispatch(authApi.util.resetApiState());
+        } catch (err) {
+          console.error("Sign out process failed", err);
+        }
       },
       invalidatesTags: ["User"],
     }),
@@ -58,6 +70,7 @@ export const authApi = baseApi.injectEndpoints({
 export const {
   useSignInMutation,
   useSignUpMutation,
+  useVerifyEmailMutation,
   useAuthMeQuery,
   useSignOutMutation,
 } = authApi;

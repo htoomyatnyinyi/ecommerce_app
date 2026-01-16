@@ -20,6 +20,25 @@ export const cartApi = baseApi.injectEndpoints({
         method: "PUT",
         body,
       }),
+      async onQueryStarted(
+        { cartItemId, quantity },
+        { dispatch, queryFulfilled }
+      ) {
+        const patchResult = dispatch(
+          cartApi.util.updateQueryData("getCart", undefined, (draft) => {
+            const cartItems = draft.getCart?.cartItems || [];
+            const item = cartItems.find((i: any) => i.id === cartItemId);
+            if (item) {
+              item.quantity = quantity;
+            }
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
       invalidatesTags: ["Cart"],
     }),
     removeFromCart: builder.mutation({
@@ -28,6 +47,22 @@ export const cartApi = baseApi.injectEndpoints({
         method: "DELETE",
         body,
       }),
+      async onQueryStarted({ removeCartItemId }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          cartApi.util.updateQueryData("getCart", undefined, (draft) => {
+            if (draft.getCart?.cartItems) {
+              draft.getCart.cartItems = draft.getCart.cartItems.filter(
+                (item: any) => item.id !== removeCartItemId
+              );
+            }
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
       invalidatesTags: ["Cart"],
     }),
   }),

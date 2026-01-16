@@ -1,40 +1,51 @@
-import { useAuthMeQuery } from "@/services/api/authApi";
-import { useGetProductsQuery } from "@/services/api/productApi";
-import { useRouter } from "expo-router";
-import { Heart, Search, ShoppingBag } from "lucide-react-native";
-import React, { useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
+  View,
+  Text,
   SafeAreaView,
   StatusBar,
-  Text,
+  FlatList,
   TouchableOpacity,
-  View,
+  Image,
+  ActivityIndicator,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/services/store";
-import { toggleWishlist } from "@/services/wishlistSlice";
+import { useGetProductsQuery } from "../../services/api/productApi";
+import { RootState } from "../../services/store";
+import { Heart, Search as SearchIcon, X } from "lucide-react-native";
+import { Input } from "../../components/Input";
+import { toggleWishlist } from "../../services/wishlistSlice";
 
-export default function Products() {
-  const dispatch = useDispatch();
-  const { isError: authError, isLoading: isAuthLoading } = useAuthMeQuery(null);
-  const { data: products, isLoading: isProductsLoading } =
-    useGetProductsQuery(null);
-  const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
-
+export default function SearchScreen() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  const [searchQuery, setSearchQuery] = useState("");
+  const { data: products, isLoading } = useGetProductsQuery(null);
+  const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isDark = mode === "dark";
 
-  useEffect(() => {
-    if (authError) {
-      router.replace("/login");
-    }
-  }, [authError]);
+  const productsData = useMemo(() => {
+    const list = Array.isArray(products)
+      ? products
+      : products?.data ?? products?.products ?? [];
 
-  if (isAuthLoading || isProductsLoading) {
+    if (!searchQuery) return list;
+
+    return list.filter(
+      (item: any) =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.category?.categoryName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase())
+    );
+  }, [products, searchQuery]);
+
+  const isInWishlist = (productId: string) =>
+    wishlistItems.some((item) => item.id === productId);
+
+  if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-background dark:bg-dark-background">
         <ActivityIndicator
@@ -45,51 +56,37 @@ export default function Products() {
     );
   }
 
-  const productsData = Array.isArray(products)
-    ? products
-    : products?.data ?? products?.products ?? [];
-
-  const isInWishlist = (productId: string) =>
-    wishlistItems.some((item) => item.id === productId);
-
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <View className="px-6 py-6 flex-row justify-between items-end bg-background dark:bg-dark-background border-b border-border dark:border-dark-border">
-        <View>
-          <Text className="text-[10px] text-muted dark:text-dark-muted font-bold uppercase tracking-[3px] mb-1">
-            Discover
-          </Text>
-          <Text className="text-3xl font-black text-primary dark:text-dark-primary tracking-tighter">
-            Collections
-          </Text>
-        </View>
-        <View className="flex-row gap-4 mb-1">
-          <TouchableOpacity
-            onPress={() => router.push("/(tabs)/search")}
-            className="w-10 h-10 items-center justify-center bg-accent dark:bg-dark-accent rounded-full"
-            activeOpacity={0.7}
-          >
-            <Search
-              size={20}
-              color={isDark ? "#ffffff" : "#111827"}
-              strokeWidth={1.5}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push("/cart")}
-            className="w-10 h-10 items-center justify-center bg-accent dark:bg-dark-accent rounded-full"
-            activeOpacity={0.7}
-          >
-            <View className="relative">
-              <ShoppingBag
-                size={20}
-                color={isDark ? "#ffffff" : "#111827"}
-                strokeWidth={1.5}
-              />
-            </View>
-          </TouchableOpacity>
+      <View className="px-6 py-6 bg-background dark:bg-dark-background border-b border-border dark:border-dark-border">
+        <Text className="text-[10px] text-muted dark:text-dark-muted font-bold uppercase tracking-[3px] mb-1">
+          Explore
+        </Text>
+        <Text className="text-3xl font-black text-primary dark:text-dark-primary tracking-tighter mb-6">
+          Search
+        </Text>
+
+        <View className="relative">
+          <Input
+            label=""
+            placeholder="Search products, categories..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            className="pl-12"
+          />
+          <View className="absolute top-7 left-4">
+            <SearchIcon size={20} color={isDark ? "#9ca3af" : "#6b7280"} />
+          </View>
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery("")}
+              className="absolute top-7 right-4"
+            >
+              <X size={20} color={isDark ? "#9ca3af" : "#6b7280"} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -171,8 +168,11 @@ export default function Products() {
         )}
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center pt-24">
-            <Text className="text-muted dark:text-dark-muted text-base font-bold uppercase tracking-widest">
-              Coming soon
+            <View className="w-20 h-20 bg-secondary dark:bg-dark-secondary rounded-full items-center justify-center mb-6">
+              <SearchIcon size={32} color={isDark ? "#374151" : "#e2e8f0"} />
+            </View>
+            <Text className="text-muted dark:text-dark-muted text-base font-bold text-center">
+              {searchQuery ? "No results found" : "Start searching..."}
             </Text>
           </View>
         }

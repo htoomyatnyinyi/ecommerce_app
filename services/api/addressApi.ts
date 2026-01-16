@@ -4,7 +4,7 @@ export const addressApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAddresses: builder.query<any, void>({
       query: () => "/api/address",
-      providesTags: ["Order"], // Assuming address might affect orders, or use a separate tag
+      providesTags: ["Address", "Order"],
     }),
     createAddress: builder.mutation<any, any>({
       query: (body) => ({
@@ -12,7 +12,7 @@ export const addressApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Order"],
+      invalidatesTags: ["Address", "Order"],
     }),
     updateAddress: builder.mutation<any, { id: string; body: any }>({
       query: ({ id, body }) => ({
@@ -20,14 +20,14 @@ export const addressApi = baseApi.injectEndpoints({
         method: "PUT",
         body,
       }),
-      invalidatesTags: ["Order"],
+      invalidatesTags: ["Address", "Order"],
     }),
     deleteAddress: builder.mutation<any, string>({
       query: (id) => ({
         url: `/api/address/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Order"],
+      invalidatesTags: ["Address", "Order"],
     }),
   }),
 });

@@ -8,21 +8,16 @@ import {
   ActivityIndicator,
   StatusBar,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import {
   useGetAddressesQuery,
   useDeleteAddressMutation,
 } from "../services/api/addressApi";
 import { RootState } from "../services/store";
-import {
-  ChevronLeft,
-  MapPin,
-  Plus,
-  Trash2,
-  Home,
-  Briefcase,
-} from "lucide-react-native";
+import { MapPin, Plus, Trash2, Home, Briefcase } from "lucide-react-native";
+import { ScreenHeader } from "../components/ScreenHeader";
+
+import { useRouter } from "expo-router";
 
 export default function AddressesScreen() {
   const router = useRouter();
@@ -50,25 +45,18 @@ export default function AddressesScreen() {
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <View className="px-6 py-6 flex-row items-center justify-between border-b border-border dark:border-dark-border">
-        <View className="flex-row items-center">
+      <ScreenHeader
+        title="Addresses"
+        rightElement={
           <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-10 h-10 bg-secondary dark:bg-dark-secondary rounded-2xl items-center justify-center"
+            onPress={() => router.push("/add-address")}
+            className="w-10 h-10 bg-primary dark:bg-dark-primary rounded-2xl items-center justify-center shadow-lg"
+            activeOpacity={0.8}
           >
-            <ChevronLeft size={24} color={isDark ? "#ffffff" : "#111827"} />
+            <Plus size={20} color={isDark ? "#000000" : "#ffffff"} />
           </TouchableOpacity>
-          <Text className="ml-4 text-xl font-black text-primary dark:text-dark-primary tracking-tighter">
-            Addresses
-          </Text>
-        </View>
-        <TouchableOpacity
-          className="w-10 h-10 bg-primary dark:bg-dark-primary rounded-2xl items-center justify-center shadow-lg"
-          activeOpacity={0.8}
-        >
-          <Plus size={20} color={isDark ? "#000000" : "#ffffff"} />
-        </TouchableOpacity>
-      </View>
+        }
+      />
 
       <FlatList
         data={addressList}
@@ -76,7 +64,7 @@ export default function AddressesScreen() {
         contentContainerClassName="p-6 pt-8 pb-32"
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <View className="bg-accent dark:bg-dark-accent p-6 rounded-[32px] mb-6 shadow-sm border border-border dark:border-dark-border">
+          <View className="bg-accent dark:bg-dark-accent p-6 rounded-[32px] mb-6 border border-border dark:border-dark-border">
             <View className="flex-row justify-between items-start mb-4">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-2xl bg-white/50 dark:bg-black/20 items-center justify-center">
@@ -95,12 +83,14 @@ export default function AddressesScreen() {
                   )}
                 </View>
                 <View className="ml-4">
-                  <Text className="text-primary dark:text-dark-primary font-black uppercase tracking-widest text-xs">
+                  <Text className="text-primary dark:text-dark-primary font-black uppercase tracking-widest text-[10px]">
                     {item.label || "Shipping"}
                   </Text>
-                  <Text className="text-muted dark:text-dark-muted text-[10px] font-bold mt-0.5">
-                    Default Address
-                  </Text>
+                  {item.isDefault && (
+                    <Text className="text-muted dark:text-dark-muted text-[10px] font-bold mt-0.5">
+                      Default Address
+                    </Text>
+                  )}
                 </View>
               </View>
               <TouchableOpacity
@@ -112,18 +102,11 @@ export default function AddressesScreen() {
             </View>
 
             <Text className="text-primary dark:text-dark-primary font-bold text-sm leading-6 mb-2">
-              {item.addressLine1}
-              {item.addressLine2 ? `\n${item.addressLine2}` : ""}
+              {item.street}
             </Text>
             <Text className="text-muted dark:text-dark-muted font-bold text-xs">
-              {item.city}, {item.state} {item.zipCode}
+              {item.city}, {item.state} {item.postalCode}
             </Text>
-
-            <TouchableOpacity className="mt-6 py-2" activeOpacity={0.7}>
-              <Text className="text-primary dark:text-dark-primary text-[10px] font-black uppercase tracking-[2px] underline">
-                Edit Address
-              </Text>
-            </TouchableOpacity>
           </View>
         )}
         ListEmptyComponent={
@@ -134,14 +117,6 @@ export default function AddressesScreen() {
             <Text className="text-muted dark:text-dark-muted text-base font-bold text-center">
               No saved addresses
             </Text>
-            <TouchableOpacity
-              className="mt-8 bg-primary dark:bg-dark-primary px-8 py-4 rounded-2xl"
-              activeOpacity={0.9}
-            >
-              <Text className="text-primary-foreground dark:text-dark-secondary text-[10px] font-black uppercase tracking-widest">
-                Add New Address
-              </Text>
-            </TouchableOpacity>
           </View>
         }
       />
