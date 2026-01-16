@@ -34,11 +34,21 @@ export default function ProductDetail() {
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isDark = mode === "dark";
 
+  const [selectedVariant, setSelectedVariant] = React.useState<any>(null);
   const [addToCart, { isLoading: isAdding }] = useAddToCartMutation();
   const router = useRouter();
 
+  // Initialize selected variant
+  React.useEffect(() => {
+    if (product?.variants?.length > 0 && !selectedVariant) {
+      setSelectedVariant(product.variants[0]);
+    }
+  }, [product]);
+
   const handleAddToCart = async () => {
-    if (!product?.variants?.[0]?.id) {
+    const variantToUse = selectedVariant || product?.variants?.[0];
+
+    if (!variantToUse?.id) {
       Alert.alert("Error", "Product variant not found");
       return;
     }
@@ -46,7 +56,7 @@ export default function ProductDetail() {
     try {
       await addToCart({
         productId: id as string,
-        variantId: product.variants[0].id,
+        variantId: variantToUse.id,
         quantity: 1,
       }).unwrap();
       Alert.alert("Success", "Added to bag!", [
@@ -126,9 +136,59 @@ export default function ProductDetail() {
                 {product.title}
               </Text>
             </View>
-            <Text className="text-2xl font-black text-primary dark:text-dark-primary tracking-tighter pt-1">
-              ${product.variants?.[0]?.price}
+            <View className="items-end">
+              <Text className="text-2xl font-black text-primary dark:text-dark-primary tracking-tighter pt-1">
+                ${selectedVariant?.price || product.variants?.[0]?.price}
+              </Text>
+              {selectedVariant?.sku && (
+                <Text className="text-[10px] font-bold text-muted dark:text-dark-muted uppercase tracking-widest mt-1">
+                  SKU: {selectedVariant.sku}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Variant Selection Section */}
+          <View className="mb-8">
+            <Text className="text-primary dark:text-dark-primary font-black uppercase tracking-[2px] text-[10px] mb-4">
+              Available Options
             </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="gap-3"
+            >
+              {product.variants?.map((variant: any) => (
+                <TouchableOpacity
+                  key={variant.id}
+                  onPress={() => setSelectedVariant(variant)}
+                  className={`px-6 py-4 rounded-[24px] border-2 flex-row items-center gap-3 ${
+                    selectedVariant?.id === variant.id
+                      ? "border-primary bg-primary/5 dark:bg-dark-primary/5"
+                      : "border-border dark:border-dark-border bg-secondary dark:bg-dark-secondary"
+                  }`}
+                >
+                  <View
+                    style={{ backgroundColor: variant.color.toLowerCase() }}
+                    className="w-5 h-5 rounded-full border border-border/20 shadow-sm"
+                  />
+                  <View>
+                    <Text
+                      className={`font-black text-xs ${
+                        selectedVariant?.id === variant.id
+                          ? "text-primary dark:text-dark-primary"
+                          : "text-muted dark:text-dark-muted"
+                      }`}
+                    >
+                      {variant.color} / {variant.size}
+                    </Text>
+                    <Text className="text-[9px] font-bold text-muted dark:text-dark-muted uppercase tracking-tighter mt-0.5">
+                      {variant.stock || 0} in stock
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {/* Features Grid */}
@@ -203,14 +263,25 @@ export default function ProductDetail() {
 
         <TouchableOpacity
           className={`flex-1 bg-primary h-16 rounded-3xl items-center justify-center shadow-xl shadow-slate-900/10 ${
-            isAdding ? "opacity-70" : ""
+            isAdding || (selectedVariant && selectedVariant.stock === 0)
+              ? "opacity-70"
+              : ""
           }`}
           onPress={handleAddToCart}
-          disabled={isAdding}
+          disabled={
+            isAdding ||
+            (selectedVariant &&
+              (selectedVariant.stock === 0 || selectedVariant.stock === null))
+          }
           activeOpacity={0.9}
         >
           <Text className="text-primary-foreground font-black uppercase tracking-[3px] text-xs">
-            {isAdding ? "Adding..." : "Add to Bag"}
+            {isAdding
+              ? "Adding..."
+              : selectedVariant &&
+                (selectedVariant.stock === 0 || selectedVariant.stock === null)
+              ? "Out of Stock"
+              : "Add to Bag"}
           </Text>
         </TouchableOpacity>
       </View>
