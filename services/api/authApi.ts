@@ -44,6 +44,7 @@ export const authApi = baseApi.injectEndpoints({
 
     authMe: builder.query({
       query: () => "/api/auth/auth-me",
+      transformResponse: (response: { data: any }) => response.data,
       providesTags: ["User"],
     }),
 
