@@ -77,9 +77,11 @@ export default function CheckoutScreen() {
         console.error("Payment sheet init error:", error);
         Alert.alert("Error", "Could not initialize payment sheet");
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Payment initialization error:", e);
-      Alert.alert("Error", "Could not initialize payment sheet");
+      const errorMessage =
+        e?.data?.message || "Could not initialize payment sheet";
+      Alert.alert("Error", errorMessage);
     }
   };
 
