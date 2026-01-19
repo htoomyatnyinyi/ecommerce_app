@@ -2,15 +2,19 @@ import React, { useEffect } from "react";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { Provider, useSelector } from "react-redux";
+import { LogBox } from "react-native";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor, RootState } from "@/services/store";
 import { useAuthMeQuery } from "@/services/api/authApi";
 import "../global.css";
 
+// Suppress non-critical Stripe warning
+LogBox.ignoreLogs(["No task registered for key StripeKeepJsAwakeTask"]);
+
 function InitialRouteHandler() {
   const segments = useSegments();
   const router = useRouter();
-  
+
   const {
     data: user,
     isLoading: isAuthLoading,
@@ -18,7 +22,7 @@ function InitialRouteHandler() {
   } = useAuthMeQuery(null);
 
   const hasSeenOnboarding = useSelector(
-    (state: RootState) => state.settings.hasSeenOnboarding
+    (state: RootState) => state.settings.hasSeenOnboarding,
   );
 
   useEffect(() => {
@@ -27,13 +31,21 @@ function InitialRouteHandler() {
     const rootSegment = segments[0];
     const inAuthGroup = rootSegment === "signin" || rootSegment === "signup";
     const inOnboarding = rootSegment === "onboarding";
-    const isProtectedRoute = rootSegment === "(tabs)" || rootSegment === "(product)" || rootSegment === "checkout";
+    const isProtectedRoute =
+      rootSegment === "(tabs)" ||
+      rootSegment === "(product)" ||
+      rootSegment === "checkout";
 
     if (!hasSeenOnboarding && !inOnboarding) {
       router.replace("/onboarding");
     } else if (isProtectedRoute && authError) {
       router.replace("/signin");
-    } else if (user && !authError && !user.isEmailVerified && isProtectedRoute) {
+    } else if (
+      user &&
+      !authError &&
+      !user.isEmailVerified &&
+      isProtectedRoute
+    ) {
       router.replace("/verify-email");
     } else if (user && !authError && user.isEmailVerified && inAuthGroup) {
       router.replace("/(tabs)/products");
