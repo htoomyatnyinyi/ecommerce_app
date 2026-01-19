@@ -27,7 +27,6 @@ export default function CartScreen() {
 
   const { data: cartData, isLoading } = useGetCartQuery(undefined);
 
-  console.log(cartData, "cartData");
   const [updateQuantity] = useUpdateCartQuantityMutation();
   const [removeFromCart] = useRemoveFromCartMutation();
 
