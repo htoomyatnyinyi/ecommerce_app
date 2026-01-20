@@ -26,7 +26,8 @@ import {
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { data, isLoading } = useGetOrderByIdQuery(id as string);
+  const { data: orderData, isLoading } = useGetOrderByIdQuery(id as string);
+
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isDark = mode === "dark";
 
@@ -41,7 +42,7 @@ export default function OrderDetailScreen() {
     );
   }
 
-  const order = data?.order;
+  const order = orderData?.data;
 
   if (!order) {
     return (

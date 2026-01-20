@@ -26,6 +26,7 @@ export default function CartScreen() {
   const isDark = mode === "dark";
 
   const { data: cartData, isLoading } = useGetCartQuery(undefined);
+
   const [updateQuantity] = useUpdateCartQuantityMutation();
   const [removeFromCart] = useRemoveFromCartMutation();
 
@@ -40,14 +41,15 @@ export default function CartScreen() {
     );
   }
 
-  const cartItems = cartData?.getCart || [];
+  const cartItems = cartData?.items || [];
   const total = cartData?.totalPrice || 0;
+  const totalItems = cartData?.totalQuantity || 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
+    <SafeAreaView className="flex-1  dark:bg-dark-background">
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <View className="px-6 py-6 bg-background dark:bg-dark-background flex-row justify-between items-end border-b border-border dark:border-dark-border">
+      <View className="px-6 py-6  dark:bg-dark-background flex-row justify-between items-end border-b border-border dark:border-dark-border">
         <View>
           <Text className="text-[10px] text-muted dark:text-dark-muted font-bold uppercase tracking-[3px] mb-1">
             Shopping
@@ -57,7 +59,7 @@ export default function CartScreen() {
           </Text>
         </View>
         <Text className="text-sm font-bold text-muted dark:text-dark-muted mb-1">
-          {cartItems.length} items
+          {totalItems} items
         </Text>
       </View>
 

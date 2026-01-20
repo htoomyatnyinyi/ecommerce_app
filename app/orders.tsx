@@ -17,10 +17,12 @@ import { ScreenHeader } from "../components/ScreenHeader";
 
 export default function OrdersScreen() {
   const router = useRouter();
-  const { data: orders, isLoading } = useGetOrdersQuery();
+  const { data: orderList, isLoading } = useGetOrdersQuery();
   const mode = useSelector((state: RootState) => state.theme.mode);
   const isDark = mode === "dark";
 
+
+  // console.log(orderList, "orderList");
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-background dark:bg-dark-background">
@@ -32,7 +34,7 @@ export default function OrdersScreen() {
     );
   }
 
-  const orderList = orders?.orders || [];
+  // const orderList = orders?.orders || [];
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
