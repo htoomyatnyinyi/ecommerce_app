@@ -39,6 +39,16 @@ export default function LoginScreen() {
     }
   };
 
+  const handleTestApi = async () => {
+    try {
+      const a = await fetch("http://localhost:8080/api/auth/auth-me");
+      Alert.alert("Test API", "Success");
+      console.log(a, "return data");
+    } catch (err: any) {
+      Alert.alert("Test API", "Failed");
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
@@ -57,6 +67,11 @@ export default function LoginScreen() {
             <Text className="text-muted dark:text-dark-muted mt-2 font-black uppercase tracking-[4px] text-[10px]">
               Premium Essentials
             </Text>
+            <TouchableOpacity onPress={handleTestApi} className="mt-6">
+              <Text className="text-primary dark:text-dark-primary font-black uppercase tracking-tight">
+                Test API
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View className="gap-6">
